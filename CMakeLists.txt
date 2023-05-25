@@ -18,7 +18,7 @@ project(ISOCLINE VERSION 1.0
     DESCRIPTION "Minimum Isocline"
     LANGUAGES CXX)
 
-add_executable(min_isocline
+add_executable(miso
     src/isocline.cc
     src/isocline.h
     src/main.cc
@@ -26,9 +26,9 @@ add_executable(min_isocline
     src/solver.h
 )
 
-target_compile_features(min_isocline PRIVATE cxx_std_17)
+target_compile_features(miso PRIVATE cxx_std_17)
 
-target_link_libraries(min_isocline
+target_link_libraries(miso
     Eigen3::Eigen
     igl::core
 )
