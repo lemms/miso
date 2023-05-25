@@ -16,7 +16,7 @@
 #include <algorithm>
 #endif
 
-#define MISO_SOLVER_DEBUG_FILES 1
+#define MISO_SOLVER_DEBUG_FILES 0
 #if MISO_SOLVER_DEBUG_FILES
 #include <filesystem>
 #include <fstream>
