@@ -11,6 +11,10 @@
 #include <iostream>
 #endif
 
+namespace {
+    const float threshold = 1e-7f;
+}
+
 namespace miso {
 
 void gather_edges(
@@ -22,13 +26,28 @@ void gather_edges(
         const size_t start_face,
         const size_t end_face) {
 
+    assert(!isnan(min_isocline_direction[0]));
+    assert(!isnan(min_isocline_direction[1]));
+    assert(!isnan(min_isocline_direction[2]));
+
     for (size_t face = start_face; face < end_face; ++face) {
         uint8_t isocline_index = 0;
 
-        std::array<float, 3> n_dot_d{0, 0, 0};
-
+        bool well_formed = true;
         for (size_t edge = 0; edge < 3; ++edge) {
-            n_dot_d[edge] = n.row(f(face, edge)).dot(min_isocline_direction);
+            const uint32_t i0 = f(face, edge);
+
+            const Eigen::Vector3f& n0 = n.row(i0);
+            if (isnan(n0[0]) || isnan(n0[1]) || isnan(n0[2])) {
+                well_formed = false;
+            }
+        }
+
+        if (!well_formed) {
+#if MISO_ISOCLINE_DEBUG
+            std::cerr << "Warning: Mesh vertex normals are not well formed for face: " << face << std::endl;
+#endif
+            continue;
         }
 
         for (size_t edge = 0; edge < 3; ++edge) {
@@ -41,7 +60,19 @@ void gather_edges(
             const Eigen::Vector3f& n0 = n.row(i0);
             const Eigen::Vector3f& n1 = n.row(i1);
 
-            const float a = -n_dot_d[e0] / (n_dot_d[e1] - n_dot_d[e0]);
+            float a = -n0.dot(min_isocline_direction);
+            if (std::abs(n1.dot(min_isocline_direction) - n0.dot(min_isocline_direction)) > threshold) {
+                a /= n1.dot(min_isocline_direction) - n0.dot(min_isocline_direction);
+            }
+
+            assert(!isnan(n0[0]));
+            assert(!isnan(n0[1]));
+            assert(!isnan(n0[2]));
+            assert(!isnan(n1[0]));
+            assert(!isnan(n1[1]));
+            assert(!isnan(n1[2]));
+
+            assert(!isnan(a));
 
             if (a < 0.0 || a > 1.0) {
                 continue;
@@ -50,20 +81,28 @@ void gather_edges(
             const Eigen::Vector3f& v0 = v.row(i0);
             const Eigen::Vector3f& v1 = v.row(i1);
 
-
             const Eigen::Vector3f isocline_vertex = (1.0f - a) * v0 + a * v1;
             const Eigen::Vector3f isocline_normal = (1.0f - a) * n0 + a * n1;
+
+            assert(!isnan(isocline_vertex[0]));
+            assert(!isnan(isocline_vertex[1]));
+            assert(!isnan(isocline_vertex[2]));
+            assert(!isnan(isocline_normal[0]));
+            assert(!isnan(isocline_normal[1]));
+            assert(!isnan(isocline_normal[2]));
 
             // Min isocline curve passes through edge
             if (isocline_index == 0) {
                 edges.emplace_back(isocline_vertex, isocline_normal, isocline_vertex, isocline_normal);
+                ++isocline_index;
             } else if (isocline_index == 1) {
                 std::get<2>(edges[edges.size() - 1]) = isocline_vertex;
                 std::get<3>(edges[edges.size() - 1]) = isocline_normal;
+
+                ++isocline_index;
+
                 break;
             }
-
-            ++isocline_index;
         }
 
 #if MISO_ISOCLINE_DEBUG
@@ -122,8 +161,8 @@ void compute_isocline(
         size_t old_size = e0.rows();
 
         e0.conservativeResize(old_size + thread_edges[i].size(), e0.cols());
-        e1.conservativeResize(old_size + thread_edges[i].size(), e1.cols());
         en0.conservativeResize(old_size + thread_edges[i].size(), en0.cols());
+        e1.conservativeResize(old_size + thread_edges[i].size(), e1.cols());
         en1.conservativeResize(old_size + thread_edges[i].size(), en1.cols());
 
         for (size_t j = 0; j < thread_edges[i].size(); ++j) {
@@ -133,6 +172,13 @@ void compute_isocline(
             en1.row(old_size + j) = std::get<3>(thread_edges[i][j]);
         }
     }
+
+#if MISO_ISOCLINE_DEBUG
+    std::cout << "e0: " << e0.rows() << ", " << e0.cols() << std::endl;
+    std::cout << "e1: " << e1.rows() << ", " << e1.cols() << std::endl;
+    std::cout << "en0: " << en0.rows() << ", " << en0.cols() << std::endl;
+    std::cout << "en1: " << en1.rows() << ", " << en1.cols() << std::endl;
+#endif
 }
 
 float isocline_length(

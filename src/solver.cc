@@ -3,6 +3,8 @@
 #define _USE_MATH_DEFINES
 
 #include <cmath>
+#include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <limits>
 #include <random>
@@ -14,12 +16,6 @@
 #define MISO_SOLVER_DEBUG 0
 #if MISO_SOLVER_DEBUG
 #include <algorithm>
-#endif
-
-#define MISO_SOLVER_DEBUG_FILES 0
-#if MISO_SOLVER_DEBUG_FILES
-#include <filesystem>
-#include <fstream>
 #endif
 
 namespace miso {
@@ -67,7 +63,8 @@ void solve_min_isocline(
         const uint32_t max_iterations,
         const uint32_t max_inner_iterations,
         const float neighbor_stddev,
-        const bool verbose) {
+        const bool verbose,
+        const bool debug_files) {
 
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -163,6 +160,8 @@ void solve_min_isocline(
 
             const float new_isocline_length = isocline_length(e0, e1);
 
+            assert(!isnan(new_isocline_length));
+
 #if MISO_SOLVER_DEBUG
             std::cout << "Isocline length: " << new_isocline_length << std::endl;
 #endif
@@ -213,85 +212,85 @@ void solve_min_isocline(
         temperature *= alpha;
     }
 
-#if MISO_SOLVER_DEBUG_FILES
-    // Compute mean edge location
-    Eigen::Vector3f mean_location;
-
-    for (size_t e = 0; e < min_e0.rows(); ++e) {
-        mean_location += min_e0.row(e);
-        mean_location += min_e1.row(e);
-    }
-
-    mean_location /= min_e0.rows() * 2.0f;
-
-    float edge_distance = 0.0f;
-
-    for (size_t e = 0; e < min_e0.rows(); ++e) {
-        edge_distance = std::max(edge_distance, (min_e0.row(e).transpose() - mean_location).norm());
-        edge_distance = std::max(edge_distance, (min_e1.row(e).transpose() - mean_location).norm());
-    }
-
-    float mean_edge_length = 0.0f;
-
-    for (size_t e = 0; e < min_e0.rows(); ++e) {
-        mean_edge_length += (min_e1.row(e) - min_e0.row(e)).norm();
-    }
-
-    mean_edge_length /= min_e0.rows();
-
-    {
-        std::filesystem::path dir_obj_path = std::filesystem::temp_directory_path() / "miso_debug_direction.obj";
-
-        std::cout << "Writing debug dir OBJ to " << dir_obj_path << std::endl;
-
-        std::ofstream dir_obj(dir_obj_path);
-        dir_obj << "v " << mean_location[0] << " " << mean_location[1] << " " << mean_location[2] << std::endl;
-        dir_obj << "v " << mean_location[0] + min_isocline_direction[0] * edge_distance << " " << mean_location[1] + min_isocline_direction[1] * edge_distance << " " << mean_location[2] + min_isocline_direction[2] * edge_distance << std::endl;
-
-        dir_obj << "l 1 2" << std::endl;
-
-        dir_obj.close();
-    }
-
-    {
-        std::filesystem::path edge_obj_path = std::filesystem::temp_directory_path() / "miso_debug_points.obj";
-
-        std::cout << "Writing debug edge OBJ to " << edge_obj_path << std::endl;
-
-        std::ofstream edge_obj(edge_obj_path);
-        for (size_t e = 0; e < min_e0.rows(); ++e) {
-            edge_obj << "v " << min_e0(e, 0) << " " << min_e0(e, 1) << " " << min_e0(e, 2) << std::endl;
-            edge_obj << "v " << min_e1(e, 0) << " " << min_e1(e, 1) << " " << min_e1(e, 2) << std::endl;
-        }
+    if (debug_files) {
+        // Compute mean edge location
+        Eigen::Vector3f mean_location;
 
         for (size_t e = 0; e < min_e0.rows(); ++e) {
-            edge_obj << "l " << e * 2 + 1 << " " << e * 2 + 2 << std::endl;
+            mean_location += min_e0.row(e);
+            mean_location += min_e1.row(e);
         }
 
-        edge_obj.close();
-    }
+        mean_location /= min_e0.rows() * 2.0f;
 
-    {
-        std::filesystem::path normals_obj_path = std::filesystem::temp_directory_path() / "miso_debug_normals.obj";
-
-        std::cout << "Writing debug edge OBJ to " << normals_obj_path << std::endl;
-
-        std::ofstream normals_obj(normals_obj_path);
-        for (size_t e = 0; e < min_e0.rows(); ++e) {
-            normals_obj << "v " << min_e0(e, 0) << " " << min_e0(e, 1) << " " << min_e0(e, 2) << std::endl;
-            normals_obj << "v " << min_e0(e, 0) + min_en0(e, 0) * mean_edge_length << " " << min_e0(e, 1) + min_en0(e, 1) * mean_edge_length << " " << min_e0(e, 2) + min_en0(e, 2) * mean_edge_length << std::endl;
-            normals_obj << "v " << min_e1(e, 0) << " " << min_e1(e, 1) << " " << min_e1(e, 2) << std::endl;
-            normals_obj << "v " << min_e1(e, 0) + min_en1(e, 0) * mean_edge_length << " " << min_e1(e, 1) + min_en1(e, 1) * mean_edge_length << " " << min_e1(e, 2) + min_en1(e, 2) * mean_edge_length << std::endl;
-        }
+        float edge_distance = 0.0f;
 
         for (size_t e = 0; e < min_e0.rows(); ++e) {
-            normals_obj << "l " << e * 4 + 1 << " " << e * 4 + 2 << std::endl;
-            normals_obj << "l " << e * 4 + 3 << " " << e * 4 + 4 << std::endl;
+            edge_distance = std::max(edge_distance, (min_e0.row(e).transpose() - mean_location).norm());
+            edge_distance = std::max(edge_distance, (min_e1.row(e).transpose() - mean_location).norm());
         }
 
-        normals_obj.close();
+        float mean_edge_length = 0.0f;
+
+        for (size_t e = 0; e < min_e0.rows(); ++e) {
+            mean_edge_length += (min_e1.row(e) - min_e0.row(e)).norm();
+        }
+
+        mean_edge_length /= min_e0.rows();
+
+        {
+            std::filesystem::path dir_obj_path = std::filesystem::temp_directory_path() / "miso_debug_direction.obj";
+
+            std::cout << "Writing debug dir OBJ to " << dir_obj_path << std::endl;
+
+            std::ofstream dir_obj(dir_obj_path);
+            dir_obj << "v " << mean_location[0] << " " << mean_location[1] << " " << mean_location[2] << std::endl;
+            dir_obj << "v " << mean_location[0] + min_isocline_direction[0] * edge_distance << " " << mean_location[1] + min_isocline_direction[1] * edge_distance << " " << mean_location[2] + min_isocline_direction[2] * edge_distance << std::endl;
+
+            dir_obj << "l 1 2" << std::endl;
+
+            dir_obj.close();
+        }
+
+        {
+            std::filesystem::path edge_obj_path = std::filesystem::temp_directory_path() / "miso_debug_points.obj";
+
+            std::cout << "Writing debug edge OBJ to " << edge_obj_path << std::endl;
+
+            std::ofstream edge_obj(edge_obj_path);
+            for (size_t e = 0; e < min_e0.rows(); ++e) {
+                edge_obj << "v " << min_e0(e, 0) << " " << min_e0(e, 1) << " " << min_e0(e, 2) << std::endl;
+                edge_obj << "v " << min_e1(e, 0) << " " << min_e1(e, 1) << " " << min_e1(e, 2) << std::endl;
+            }
+
+            for (size_t e = 0; e < min_e0.rows(); ++e) {
+                edge_obj << "l " << e * 2 + 1 << " " << e * 2 + 2 << std::endl;
+            }
+
+            edge_obj.close();
+        }
+
+        {
+            std::filesystem::path normals_obj_path = std::filesystem::temp_directory_path() / "miso_debug_normals.obj";
+
+            std::cout << "Writing debug edge OBJ to " << normals_obj_path << std::endl;
+
+            std::ofstream normals_obj(normals_obj_path);
+            for (size_t e = 0; e < min_e0.rows(); ++e) {
+                normals_obj << "v " << min_e0(e, 0) << " " << min_e0(e, 1) << " " << min_e0(e, 2) << std::endl;
+                normals_obj << "v " << min_e0(e, 0) + min_en0(e, 0) * mean_edge_length << " " << min_e0(e, 1) + min_en0(e, 1) * mean_edge_length << " " << min_e0(e, 2) + min_en0(e, 2) * mean_edge_length << std::endl;
+                normals_obj << "v " << min_e1(e, 0) << " " << min_e1(e, 1) << " " << min_e1(e, 2) << std::endl;
+                normals_obj << "v " << min_e1(e, 0) + min_en1(e, 0) * mean_edge_length << " " << min_e1(e, 1) + min_en1(e, 1) * mean_edge_length << " " << min_e1(e, 2) + min_en1(e, 2) * mean_edge_length << std::endl;
+            }
+
+            for (size_t e = 0; e < min_e0.rows(); ++e) {
+                normals_obj << "l " << e * 4 + 1 << " " << e * 4 + 2 << std::endl;
+                normals_obj << "l " << e * 4 + 3 << " " << e * 4 + 4 << std::endl;
+            }
+
+            normals_obj.close();
+        }
     }
-#endif
 }
 
 }

@@ -15,11 +15,12 @@ int main(int argc, char** argv) {
     uint32_t max_inner_iterations = 100;
     float neighbor_stddev = 0.1f;
     bool verbose = false;
+    bool debug_files = false;
 
     std::vector<std::string> arguments(argv + 1, argv + argc);
 
     if (arguments.empty()) {
-        std::cout << "Usage miso <PLY file> --min-temp=<min temperature> --alpha=<alpha> --max-iter=<max iterations> --max-inner-iter=<max inner iterations> --neighbor-stddev=<neighbor standard deviation> --verbose" << std::endl;
+        std::cout << "Usage miso <PLY file> --min-temp=<min temperature> --alpha=<alpha> --max-iter=<max iterations> --max-inner-iter=<max inner iterations> --neighbor-stddev=<neighbor standard deviation> --verbose --debug-files" << std::endl;
 
         return 0;
     }
@@ -31,6 +32,8 @@ int main(int argc, char** argv) {
         if (n == std::string::npos) {
             if (arg == "--verbose") {
                 verbose = true;
+            } else if (arg == "--debug-files") {
+                debug_files = true;
             } else {
                 ply_file_name = arg;
             }
@@ -96,7 +99,8 @@ int main(int argc, char** argv) {
             max_iterations,
             max_inner_iterations,
             neighbor_stddev,
-            verbose);
+            verbose,
+            debug_files);
 
     if (verbose) {
         std::cout << "Min isocline curve direction:" << std::endl;
