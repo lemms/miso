@@ -32,3 +32,8 @@ target_link_libraries(miso
     Eigen3::Eigen
     igl::core
 )
+
+install(TARGETS
+    miso
+    DESTINATION bin
+)
