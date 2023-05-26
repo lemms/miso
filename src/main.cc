@@ -12,7 +12,7 @@ int main(int argc, char** argv) {
     std::cout << "The Minimum Isocline Curve Solver" << std::endl;
 
     if (argc != 2) {
-        std::cout << "Usage min_isocline <PLY file>" << std::endl;
+        std::cout << "Usage miso <PLY file>" << std::endl;
 
         return 1;   
     }
