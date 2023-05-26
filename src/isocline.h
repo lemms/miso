@@ -10,6 +10,7 @@ void compute_isocline(
         Eigen::MatrixXf& en0,
         Eigen::MatrixXf& en1,
         const Eigen::Vector3f& min_isocline_direction,
+        const float cos_angle,
         const Eigen::MatrixXf& v,
         const Eigen::MatrixXi& f,
         const Eigen::MatrixXf& n);

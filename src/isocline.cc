@@ -21,6 +21,7 @@ namespace miso {
 void gather_edges(
         std::vector<std::tuple<Eigen::Vector3f, Eigen::Vector3f, Eigen::Vector3f, Eigen::Vector3f>>& edges,
         const Eigen::Vector3f& isocline_direction,
+        const float cos_angle,
         const Eigen::MatrixXf& v,
         const Eigen::MatrixXi& f,
         const Eigen::MatrixXf& n,
@@ -83,7 +84,7 @@ void gather_edges(
             const Eigen::Vector3f& n1 = n.row(i1);
 
             // Check if the edge is on the isocline curve
-            if (std::abs(n_dot_d[e0]) < threshold && std::abs(n_dot_d[e1]) < threshold) {
+            if (std::abs(n_dot_d[e0] - cos_angle) < threshold && std::abs(n_dot_d[e1] - cos_angle) < threshold) {
                 const Eigen::Vector3f& v0 = v.row(i0);
                 const Eigen::Vector3f& v1 = v.row(i1);
 
@@ -93,7 +94,7 @@ void gather_edges(
 #if MISO_ISOCLINE_DEBUG
                 std::cout << "Edge is on isocline curve. Face: " << face << " edge: " << edge << std::endl;
 #endif
-            } else if (std::abs(n_dot_md[e0]) < threshold && std::abs(n_dot_md[e1]) < threshold) {
+            } else if (std::abs(n_dot_md[e0] - cos_angle) < threshold && std::abs(n_dot_md[e1] - cos_angle) < threshold) {
 
                 const Eigen::Vector3f& v0 = v.row(i0);
                 const Eigen::Vector3f& v1 = v.row(i1);
@@ -119,12 +120,12 @@ void gather_edges(
                 const Eigen::Vector3f& n0 = n.row(i0);
                 const Eigen::Vector3f& n1 = n.row(i1);
 
-                float a = -n_dot_d[e0];
+                float a = -n_dot_d[e0] + cos_angle;
                 if (std::abs(n_dot_d[e1] - n_dot_d[e0]) > threshold) {
                     a /= n_dot_d[e1] - n_dot_d[e0];
                 }
 
-                float ma = -n_dot_md[e0];
+                float ma = -n_dot_md[e0] + cos_angle;
                 if (std::abs(n_dot_md[e1] - n_dot_md[e0]) > threshold) {
                     ma /= n_dot_md[e1] - n_dot_md[e0];
                 }
@@ -214,6 +215,7 @@ void compute_isocline(
         Eigen::MatrixXf& en0,
         Eigen::MatrixXf& en1,
         const Eigen::Vector3f& isocline_direction,
+        const float cos_angle,
         const Eigen::MatrixXf& v,
         const Eigen::MatrixXi& f,
         const Eigen::MatrixXf& n) {
@@ -238,6 +240,7 @@ void compute_isocline(
         threads.push_back(std::thread(gather_edges,
                 std::ref(thread_edges[i]),
                 std::ref(isocline_direction),
+                cos_angle,
                 std::ref(v),
                 std::ref(f),
                 std::ref(n),

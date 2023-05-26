@@ -12,6 +12,7 @@
 #include "solver.h"
 
 int main(int argc, char** argv) {
+    float angle = 0.0f;
     float min_temperature = 0.0001f;
     float alpha = 0.9f;
     uint32_t max_iterations = 100;
@@ -23,7 +24,7 @@ int main(int argc, char** argv) {
     std::vector<std::string> arguments(argv + 1, argv + argc);
 
     if (arguments.empty()) {
-        std::cout << "Usage miso <mesh file> --min-temp=<min temperature> --alpha=<alpha> --max-iter=<max iterations> --max-inner-iter=<max inner iterations> --neighbor-stddev=<neighbor standard deviation> --verbose --debug-files" << std::endl;
+        std::cout << "Usage miso <mesh file> --angle=<isocline angle> --min-temp=<min temperature> --alpha=<alpha> --max-iter=<max iterations> --max-inner-iter=<max inner iterations> --neighbor-stddev=<neighbor standard deviation> --verbose --debug-files" << std::endl;
 
         return 0;
     }
@@ -43,7 +44,9 @@ int main(int argc, char** argv) {
         } else {
             std::string key = arg.substr(0, n);
             std::string value = arg.substr(n + 1, std::string::npos);
-            if (key == "--min-temp") {
+            if (key == "--angle") {
+                angle = std::stof(value);
+            } else if (key == "--min-temp") {
                 min_temperature = std::stof(value);
             } else if (key == "--alpha") {
                 alpha = std::stof(value);
@@ -97,7 +100,8 @@ int main(int argc, char** argv) {
     }
 
     if (verbose) {
-        std::cout << "Processing mesh " << mesh_file_name << std::endl;
+        std::cout << "Isocline angle: " << angle << std::endl;
+        std::cout << "Processing mesh: " << mesh_file_name << std::endl;
         std::cout << "Vertices: " << v.rows() << std::endl;
         std::cout << "Faces: " << f.rows() << std::endl;
         std::cout << "Normals: " << n.rows() << std::endl;
@@ -111,6 +115,7 @@ int main(int argc, char** argv) {
     miso::solve_min_isocline(
             min_isocline_direction,
             min_isocline_length,
+            angle,
             v,
             f,
             n,

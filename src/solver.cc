@@ -74,6 +74,7 @@ void neighbor_spherical_coords(
 void solve_min_isocline(
         Eigen::Vector3f& min_isocline_direction,
         float& min_isocline_length,
+        const float angle,
         const Eigen::MatrixXf& v,
         const Eigen::MatrixXi& f,
         const Eigen::MatrixXf& n,
@@ -84,6 +85,8 @@ void solve_min_isocline(
         const float neighbor_stddev,
         const bool verbose,
         const bool debug_files) {
+
+    const float cos_angle = std::cos(static_cast<float>(M_PI) * 0.5f - angle);
 
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -172,6 +175,7 @@ void solve_min_isocline(
                     en0,
                     en1,
                     new_isocline_direction,
+                    cos_angle,
                     v,
                     f,
                     n);
@@ -358,12 +362,22 @@ void solve_min_isocline(
 
             std::ofstream mesh_normals_obj(mesh_normals_obj_path);
             for (size_t i = 0; i < n.rows(); ++i) {
+                if (isnan(n(i, 0)) || isnan(n(i, 1)) || isnan(n(i, 2))) {
+                    continue;
+                }
+
                 mesh_normals_obj << "v " << v(i, 0) << " " << v(i, 1) << " " << v(i, 2) << std::endl;
                 mesh_normals_obj << "v " << v(i, 0) + n(i, 0) * mean_edge_length << " " << v(i, 1) + n(i, 1) * mean_edge_length << " " << v(i, 2) + n(i, 2) * mean_edge_length << std::endl;
             }
 
+            size_t idx = 0;
             for (size_t i = 0; i < n.rows(); ++i) {
-                mesh_normals_obj << "l " << i * 2 + 1 << " " << i * 2 + 2 << std::endl;
+                if (isnan(n(i, 0)) || isnan(n(i, 1)) || isnan(n(i, 2))) {
+                    continue;
+                }
+
+                mesh_normals_obj << "l " << idx * 2 + 1 << " " << idx * 2 + 2 << std::endl;
+                ++idx;
             }
 
             mesh_normals_obj.close();

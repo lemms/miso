@@ -5,8 +5,6 @@ Miso is a solver which will output the direction vector which produces the minim
 
 Miso uses [simulated annealing](https://en.wikipedia.org/wiki/Simulated_annealing) on randomly generated candidate neighbor directions with a [multiplicative cooling schedule](https://en.wikipedia.org/wiki/Simulated_annealing#Cooling_schedule) to find an approximate global minimum isocline curve direction.
 
-Note: Miso currently only supports 0-degree isocline curves.
-
 # Pre-requisites
 
 Eigen3
@@ -41,13 +39,17 @@ cmake --install .
 
 # Usage
 
-miso &lt;mesh file&gt; --min-temp=&lt;min temperature&gt; --alpha=&lt;alpha&gt; --max-iter=&lt;max iterations&gt; --max-inner-iter=&lt;max inner iterations&gt; --neighbor-stddev=&lt;neighbor standard deviation&gt; --verbose --debug-files
+miso &lt;mesh file&gt; --angle=&lt;isocline angle&gt; --min-temp=&lt;min temperature&gt; --alpha=&lt;alpha&gt; --max-iter=&lt;max iterations&gt; --max-inner-iter=&lt;max inner iterations&gt; --neighbor-stddev=&lt;neighbor standard deviation&gt; --verbose --debug-files
 
 ## Arguments
 
 &lt;mesh file&gt;:
 
 The input mesh file. Supported file formats: OBJ, OFF, PLY, STL.
+
+--angle:
+
+The angle of the isocline curve relative to the minimum direction.
 
 --min-temp:
 
