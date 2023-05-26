@@ -95,6 +95,11 @@ void solve_min_isocline(
     Eigen::MatrixXf min_en0(0, 3);
     Eigen::MatrixXf min_en1(0, 3);
 
+    Eigen::MatrixXf current_e0(0, 3);
+    Eigen::MatrixXf current_e1(0, 3);
+    Eigen::MatrixXf current_en0(0, 3);
+    Eigen::MatrixXf current_en1(0, 3);
+
     Eigen::MatrixXf e0(0, 3);
     Eigen::MatrixXf e1(0, 3);
     Eigen::MatrixXf en0(0, 3);
@@ -153,6 +158,8 @@ void solve_min_isocline(
                     n);
 
             assert(e0.rows() == e1.rows());
+            assert(e0.rows() == en0.rows());
+            assert(e0.rows() == en1.rows());
 
 #if MISO_SOLVER_DEBUG
             std::cout << "Number of edges in isocline: " << e0.rows() << std::endl;
@@ -171,6 +178,10 @@ void solve_min_isocline(
                 current_phi = new_phi;
                 current_isocline_direction = new_isocline_direction;
                 current_isocline_length = new_isocline_length;
+                current_e0 = e0;
+                current_e1 = e1;
+                current_en0 = en0;
+                current_en1 = en1;
 
                 initialized = true;
                 continue;
@@ -181,10 +192,10 @@ void solve_min_isocline(
                 min_theta = current_theta;
                 min_phi = current_phi;
                 min_isocline_direction = current_isocline_direction;
-                min_e0 = e0;
-                min_e1 = e1;
-                min_en0 = en0;
-                min_en1 = en1;
+                min_e0 = current_e0;
+                min_e1 = current_e1;
+                min_en0 = current_en0;
+                min_en1 = current_en1;
             }
 
 #if MISO_SOLVER_DEBUG
@@ -205,6 +216,10 @@ void solve_min_isocline(
                 current_phi = new_phi;
                 current_isocline_direction = new_isocline_direction;
                 current_isocline_length = new_isocline_length;
+                current_e0 = e0;
+                current_e1 = e1;
+                current_en0 = en0;
+                current_en1 = en1;
             }
         }
 

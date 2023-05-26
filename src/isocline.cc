@@ -47,6 +47,7 @@ void gather_edges(
 #if MISO_ISOCLINE_DEBUG
             std::cerr << "Warning: Mesh vertex normals are not well formed for face: " << face << std::endl;
 #endif
+
             continue;
         }
 

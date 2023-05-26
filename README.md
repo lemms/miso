@@ -27,13 +27,13 @@ cd build
 cmake -DCMAKE_BUILD_TYPE=Release ..
 ```
 
-3. Build miso
+3. Build Miso
 
 ```
 cmake --build .
 ```
 
-4. Install miso
+4. Install Miso
 
 ```
 cmake --install .
@@ -43,9 +43,9 @@ cmake --install .
 
 miso <mesh file> --min-temp=<min temperature> --alpha=<alpha> --max-iter=<max iterations> --max-inner-iter=<max inner iterations> --neighbor-stddev=<neighbor standard deviation> --verbose --debug-files
 
-## Options
+## Arguments
 
-<mesh file>:
+Mesh file:
 
 The input mesh file. Supported file formats: OBJ, OFF, PLY, STL.
 
