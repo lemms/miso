@@ -3,7 +3,10 @@
 
 #include <Eigen/Dense>
 
+#include <igl/readOBJ.h>
+#include <igl/readOFF.h>
 #include <igl/readPLY.h>
+#include <igl/readSTL.h>
 #include <igl/per_vertex_normals.h>
 
 #include "solver.h"
@@ -20,12 +23,12 @@ int main(int argc, char** argv) {
     std::vector<std::string> arguments(argv + 1, argv + argc);
 
     if (arguments.empty()) {
-        std::cout << "Usage miso <PLY file> --min-temp=<min temperature> --alpha=<alpha> --max-iter=<max iterations> --max-inner-iter=<max inner iterations> --neighbor-stddev=<neighbor standard deviation> --verbose --debug-files" << std::endl;
+        std::cout << "Usage miso <mesh file> --min-temp=<min temperature> --alpha=<alpha> --max-iter=<max iterations> --max-inner-iter=<max inner iterations> --neighbor-stddev=<neighbor standard deviation> --verbose --debug-files" << std::endl;
 
         return 0;
     }
 
-    std::string ply_file_name;
+    std::string mesh_file_name;
 
     for (const std::string& arg : arguments) {
         const auto n = arg.find('=');
@@ -35,7 +38,7 @@ int main(int argc, char** argv) {
             } else if (arg == "--debug-files") {
                 debug_files = true;
             } else {
-                ply_file_name = arg;
+                mesh_file_name = arg;
             }
         } else {
             std::string key = arg.substr(0, n);
@@ -62,24 +65,41 @@ int main(int argc, char** argv) {
     Eigen::MatrixXf v;
     Eigen::MatrixXi f;
 
-    igl::readPLY(ply_file_name.c_str(), v, f);
-
-    assert(v.cols() == 3);
-    assert(f.cols() == 3);
-
-    if (verbose) {
-        std::cout << "Processing mesh " << ply_file_name << std::endl;
-        std::cout << "Vertices: " << v.rows() << std::endl;
-        std::cout << "Faces: " << f.rows() << std::endl;
-    }
+    std::filesystem::path mesh_file_path(mesh_file_name);
 
     Eigen::MatrixXf n;
 
-    igl::per_vertex_normals(v, f, n);
+    if (mesh_file_path.extension() == ".obj") {
+        igl::readOBJ(mesh_file_name.c_str(), v, f);
+        igl::per_vertex_normals(v, f, n);
+    } else if (mesh_file_path.extension() == ".off") {
+        igl::readOFF(mesh_file_name.c_str(), v, f);
+        igl::per_vertex_normals(v, f, n);
+    } else if (mesh_file_path.extension() == ".ply") {
+        igl::readPLY(mesh_file_name.c_str(), v, f);
+        igl::per_vertex_normals(v, f, n);
+    } else if (mesh_file_path.extension() == ".stl") {
+        std::ifstream mesh_file(mesh_file_name);
+        igl::readSTL(mesh_file, v, f, n);
+    } else {
+        std::cerr << "Unsupported mesh file format: " << mesh_file_path.extension() << std::endl;
 
+        return 1;
+    }
+
+    assert(v.cols() == 3);
     assert(n.cols() == 3);
 
+    if (f.cols() != 3) {
+        std::cerr << "Input file contains non-triangular faces. Miso expects triangle mesh input." << std::endl;
+
+        return 1;
+    }
+
     if (verbose) {
+        std::cout << "Processing mesh " << mesh_file_name << std::endl;
+        std::cout << "Vertices: " << v.rows() << std::endl;
+        std::cout << "Faces: " << f.rows() << std::endl;
         std::cout << "Normals: " << n.rows() << std::endl;
     }
 

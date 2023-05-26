@@ -41,9 +41,13 @@ cmake --install .
 
 # Usage
 
-miso <PLY file> --min-temp=<min temperature> --alpha=<alpha> --max-iter=<max iterations> --max-inner-iter=<max inner iterations> --neighbor-stddev=<neighbor standard deviation> --verbose --debug-files
+miso <mesh file> --min-temp=<min temperature> --alpha=<alpha> --max-iter=<max iterations> --max-inner-iter=<max inner iterations> --neighbor-stddev=<neighbor standard deviation> --verbose --debug-files
 
 ## Options
+
+<mesh file>:
+
+The input mesh file. Supported file formats: OBJ, OFF, PLY, STL.
 
 --min-temp:
 
