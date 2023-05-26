@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 
 #include <Eigen/Dense>
 
@@ -15,10 +16,39 @@ int main(int argc, char** argv) {
     float neighbor_stddev = 0.1f;
     bool verbose = false;
 
-    if (argc != 2) {
-        std::cout << "Usage miso <PLY file>" << std::endl;
+    std::vector<std::string> arguments(argv + 1, argv + argc);
 
-        return 1;   
+    if (arguments.empty()) {
+        std::cout << "Usage miso <PLY file> --min-temp=<min temperature> --alpha=<alpha> --max-iter=<max iterations> --max-inner-iter=<max inner iterations> --neighbor-stddev=<neighbor standard deviation> --verbose" << std::endl;
+
+        return 0;
+    }
+
+    std::string ply_file_name;
+
+    for (const std::string& arg : arguments) {
+        const auto n = arg.find('=');
+        if (n == std::string::npos) {
+            if (arg == "--verbose") {
+                verbose = true;
+            } else {
+                ply_file_name = arg;
+            }
+        } else {
+            std::string key = arg.substr(0, n);
+            std::string value = arg.substr(n + 1, std::string::npos);
+            if (key == "--min-temp") {
+                min_temperature = std::stof(value);
+            } else if (key == "--alpha") {
+                alpha = std::stof(value);
+            } else if (key == "--max-iter") {
+                max_iterations = std::stoi(value);
+            } else if (key == "--max-inner-iter") {
+                max_inner_iterations = std::stoi(value);
+            } else if (key == "--neighbor-stddev") {
+                neighbor_stddev = std::stof(value);
+            }
+        }
     }
 
     if (verbose) {
@@ -29,13 +59,13 @@ int main(int argc, char** argv) {
     Eigen::MatrixXf v;
     Eigen::MatrixXi f;
 
-    igl::readPLY(argv[1], v, f);
+    igl::readPLY(ply_file_name.c_str(), v, f);
 
     assert(v.cols() == 3);
     assert(f.cols() == 3);
 
     if (verbose) {
-        std::cout << "Processing mesh " << argv[1] << std::endl;
+        std::cout << "Processing mesh " << ply_file_name << std::endl;
         std::cout << "Vertices: " << v.rows() << std::endl;
         std::cout << "Faces: " << f.rows() << std::endl;
     }
