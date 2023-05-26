@@ -8,13 +8,22 @@
 #include "solver.h"
 
 int main(int argc, char** argv) {
-    std::cout << "Miso" << std::endl;
-    std::cout << "The Minimum Isocline Curve Solver" << std::endl;
+    double min_temperature = 0.0001;
+    double alpha = 0.9;
+    uint32_t max_iterations = 100;
+    uint32_t max_inner_iterations = 100;
+    double neighbor_stddev = 0.1;
+    bool verbose = false;
 
     if (argc != 2) {
         std::cout << "Usage miso <PLY file>" << std::endl;
 
         return 1;   
+    }
+
+    if (verbose) {
+        std::cout << "Miso" << std::endl;
+        std::cout << "The Minimum Isocline Curve Solver" << std::endl;
     }
 
     Eigen::MatrixXd v;
@@ -25,9 +34,11 @@ int main(int argc, char** argv) {
     assert(v.cols() == 3);
     assert(f.cols() == 3);
 
-    std::cout << "Processing mesh " << argv[1] << std::endl;
-    std::cout << "Vertices: " << v.rows() << std::endl;
-    std::cout << "Faces: " << f.rows() << std::endl;
+    if (verbose) {
+        std::cout << "Processing mesh " << argv[1] << std::endl;
+        std::cout << "Vertices: " << v.rows() << std::endl;
+        std::cout << "Faces: " << f.rows() << std::endl;
+    }
 
     Eigen::MatrixXd n;
 
@@ -35,7 +46,9 @@ int main(int argc, char** argv) {
 
     assert(n.cols() == 3);
 
-    std::cout << "Normals: " << n.rows() << std::endl;
+    if (verbose) {
+        std::cout << "Normals: " << n.rows() << std::endl;
+    }
 
     assert(v.rows() == n.rows());   
 
@@ -45,15 +58,30 @@ int main(int argc, char** argv) {
     miso::solve_min_isocline(
             min_isocline_direction,
             min_isocline_length,
-            v, f, n);
+            v,
+            f,
+            n,
+            min_temperature,
+            alpha,
+            max_iterations,
+            max_inner_iterations,
+            neighbor_stddev,
+            verbose);
 
-    std::cout << "Min isocline curve direction: ["
+    if (verbose) {
+        std::cout << "Min isocline curve direction:" << std::endl;
+    }
+
+    std::cout << "["
         << min_isocline_direction[0] << ", "
         << min_isocline_direction[1] << ", "
         << min_isocline_direction[2] << "]" << std::endl;
 
-    std::cout << "Min isocline curve length: "
-        << min_isocline_length << std::endl;
+    if (verbose) {
+        std::cout << "Min isocline curve length:" << std::endl;
+    }
+
+    std::cout << min_isocline_length << std::endl;
 
     return 0;
 }

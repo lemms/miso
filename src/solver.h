@@ -14,6 +14,7 @@ void solve_min_isocline(
         const double alpha = 0.9,
         const uint32_t max_iterations = 100,
         const uint32_t max_inner_iterations = 100,
-        const double neighbor_stddev = 0.1);
+        const double neighbor_stddev = 0.1,
+        const bool verbose = false);
 
 }

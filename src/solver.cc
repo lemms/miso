@@ -66,7 +66,8 @@ void solve_min_isocline(
         const double alpha,
         const uint32_t max_iterations,
         const uint32_t max_inner_iterations,
-        const double neighbor_stddev) {
+        const double neighbor_stddev,
+        const bool verbose) {
 
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -104,7 +105,9 @@ void solve_min_isocline(
 
     while (temperature > min_temperature && iterations < max_iterations) {
 
-        std::cout << "Temperature: " << temperature << std::endl;
+        if (verbose) {
+            std::cout << "Temperature: " << temperature << std::endl;
+        }
 
         for (uint32_t i = 0; i < max_inner_iterations; ++i) {
 
