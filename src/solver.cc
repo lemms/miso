@@ -138,7 +138,6 @@ void solve_min_isocline(
             
             spherical_coords_to_direction(new_theta, new_phi, new_isocline_direction);
 
-
 #if MISO_SOLVER_DEBUG
             std::cout << "Search direction: ["
                 << new_isocline_direction[0] << ", "
