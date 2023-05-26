@@ -18,6 +18,10 @@
 #include <algorithm>
 #endif
 
+namespace {
+    constexpr float threshold = 1e-7f;
+}
+
 namespace miso {
 
 void spherical_coords_to_direction(
@@ -151,7 +155,7 @@ void solve_min_isocline(
             std::cout << "New phi: " << new_phi << std::endl;
 #endif
 
-            Eigen::Vector3f new_isocline_direction;
+            Eigen::Vector3f new_isocline_direction = {0.0f, 0.0f, 0.0f};
             
             spherical_coords_to_direction(new_theta, new_phi, new_isocline_direction);
 
@@ -180,9 +184,25 @@ void solve_min_isocline(
             std::cout << "Number of edges in isocline: " << e0.rows() << std::endl;
 #endif
 
+            if (e0.rows() == 0) {
+#if MISO_SOLVER_DEBUG
+                std::cout << "No isocline edges found for search direction, skipping candidate search direction." << std::endl;
+#endif
+
+                continue;
+            }
+
             const float new_isocline_length = isocline_length(e0, e1);
 
             assert(!isnan(new_isocline_length));
+
+            if (std::abs(new_isocline_length) < threshold) {
+#if MISO_SOLVER_DEBUG
+                std::cout << "Isocline curve is degenerate for search direction, skipping candidate search direction." << std::endl;
+#endif
+
+                continue;
+            }
 
 #if MISO_SOLVER_DEBUG
             std::cout << "Isocline length: " << new_isocline_length << std::endl;
@@ -243,8 +263,14 @@ void solve_min_isocline(
     }
 
     if (debug_files) {
+        if (min_e0.rows() == 0) {
+            std::cerr << "Failed to find an isocline curve for input mesh." << std::endl;
+
+            return;
+        }
+
         // Compute mean edge location
-        Eigen::Vector3f mean_location;
+        Eigen::Vector3f mean_location = {0.0f, 0.0f, 0.0f};
 
         for (size_t e = 0; e < min_e0.rows(); ++e) {
             mean_location += min_e0.row(e);
@@ -253,12 +279,16 @@ void solve_min_isocline(
 
         mean_location /= min_e0.rows() * 2.0f;
 
+        std::cout << "Mean location: " << mean_location[0] << ", " << mean_location[1] << ", " << mean_location[2] << std::endl;
+
         float edge_distance = 0.0f;
 
         for (size_t e = 0; e < min_e0.rows(); ++e) {
             edge_distance = std::max(edge_distance, (min_e0.row(e).transpose() - mean_location).norm());
             edge_distance = std::max(edge_distance, (min_e1.row(e).transpose() - mean_location).norm());
         }
+
+        std::cout << "Edge distance: " << edge_distance << std::endl;
 
         float mean_edge_length = 0.0f;
 
@@ -271,7 +301,7 @@ void solve_min_isocline(
         {
             std::filesystem::path dir_obj_path = std::filesystem::temp_directory_path() / "miso_debug_direction.obj";
 
-            std::cout << "Writing debug dir OBJ to " << dir_obj_path << std::endl;
+            std::cout << "Writing debug direction OBJ to " << dir_obj_path << std::endl;
 
             std::ofstream dir_obj(dir_obj_path);
             dir_obj << "v " << mean_location[0] << " " << mean_location[1] << " " << mean_location[2] << std::endl;
@@ -303,7 +333,7 @@ void solve_min_isocline(
         {
             std::filesystem::path normals_obj_path = std::filesystem::temp_directory_path() / "miso_debug_normals.obj";
 
-            std::cout << "Writing debug edge OBJ to " << normals_obj_path << std::endl;
+            std::cout << "Writing debug edge normals OBJ to " << normals_obj_path << std::endl;
 
             std::ofstream normals_obj(normals_obj_path);
             for (size_t e = 0; e < min_e0.rows(); ++e) {
@@ -319,6 +349,24 @@ void solve_min_isocline(
             }
 
             normals_obj.close();
+        }
+
+        {
+            std::filesystem::path mesh_normals_obj_path = std::filesystem::temp_directory_path() / "miso_debug_mesh_normals.obj";
+
+            std::cout << "Writing debug mesh normals OBJ to " << mesh_normals_obj_path << std::endl;
+
+            std::ofstream mesh_normals_obj(mesh_normals_obj_path);
+            for (size_t i = 0; i < n.rows(); ++i) {
+                mesh_normals_obj << "v " << v(i, 0) << " " << v(i, 1) << " " << v(i, 2) << std::endl;
+                mesh_normals_obj << "v " << v(i, 0) + n(i, 0) * mean_edge_length << " " << v(i, 1) + n(i, 1) * mean_edge_length << " " << v(i, 2) + n(i, 2) * mean_edge_length << std::endl;
+            }
+
+            for (size_t i = 0; i < n.rows(); ++i) {
+                mesh_normals_obj << "l " << i * 2 + 1 << " " << i * 2 + 2 << std::endl;
+            }
+
+            mesh_normals_obj.close();
         }
     }
 }
