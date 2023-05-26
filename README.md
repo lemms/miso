@@ -3,7 +3,7 @@ Miso: The Minimum Isocline Curve Solver
 
 Miso is a solver which will output the direction vector which produces the minimum length [isocline curve](http://www2.me.rochester.edu/courses/ME204/nx_help/index.html#uid:points_curves_crv_isocline) for a given mesh.
 
-Miso uses (simulated annealing)[https://en.wikipedia.org/wiki/Simulated_annealing] on randomly generated candidate neighbor directions with a [multiplicative cooling schedule](https://en.wikipedia.org/wiki/Simulated_annealing#Cooling_schedule) to find an approximate global minimum isocline curve direction.
+Miso uses [simulated annealing](https://en.wikipedia.org/wiki/Simulated_annealing) on randomly generated candidate neighbor directions with a [multiplicative cooling schedule](https://en.wikipedia.org/wiki/Simulated_annealing#Cooling_schedule) to find an approximate global minimum isocline curve direction.
 
 Note: Miso currently only supports 0-degree isocline curves.
 
@@ -41,11 +41,11 @@ cmake --install .
 
 # Usage
 
-miso <mesh file> --min-temp=<min temperature> --alpha=<alpha> --max-iter=<max iterations> --max-inner-iter=<max inner iterations> --neighbor-stddev=<neighbor standard deviation> --verbose --debug-files
+miso &lt;mesh file&gt; --min-temp=&lt;min temperature&gt; --alpha=&lt;alpha&gt; --max-iter=&lt;max iterations&gt; --max-inner-iter=&lt;max inner iterations&gt; --neighbor-stddev=&lt;neighbor standard deviation&gt; --verbose --debug-files
 
 ## Arguments
 
-Mesh file:
+&lt;mesh file&gt;:
 
 The input mesh file. Supported file formats: OBJ, OFF, PLY, STL.
 
