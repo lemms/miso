@@ -13,38 +13,38 @@
 namespace miso {
 
 void gather_edges(
-        std::vector<Eigen::Vector3d>& e0,
-        std::vector<Eigen::Vector3d>& e1,
-        std::vector<Eigen::Vector3d>& en0,
-        std::vector<Eigen::Vector3d>& en1,
-        const Eigen::Vector3d& min_isocline_direction,
-        const Eigen::MatrixXd& v,
+        std::vector<Eigen::Vector3f>& e0,
+        std::vector<Eigen::Vector3f>& e1,
+        std::vector<Eigen::Vector3f>& en0,
+        std::vector<Eigen::Vector3f>& en1,
+        const Eigen::Vector3f& min_isocline_direction,
+        const Eigen::MatrixXf& v,
         const Eigen::MatrixXi& f,
-        const Eigen::MatrixXd& n,
+        const Eigen::MatrixXf& n,
         const size_t start_face,
         const size_t end_face) {
 
     for (size_t face = start_face; face < end_face; ++face) {
-        int isocline_index = 0;
+        uint8_t isocline_index = 0;
 
         for (size_t edge = 0; edge < 3; ++edge) {
-            Eigen::Vector3d n0 = n.row(f(face, edge));
-            Eigen::Vector3d n1 = n.row(f(face, (edge + 1) % 3));
+            const Eigen::Vector3f n0 = n.row(f(face, edge));
+            const Eigen::Vector3f n1 = n.row(f(face, (edge + 1) % 3));
 
-            double a = -n0.dot(min_isocline_direction) / (n1.dot(min_isocline_direction) - n0.dot(min_isocline_direction));           
+            const float a = -n0.dot(min_isocline_direction) / (n1.dot(min_isocline_direction) - n0.dot(min_isocline_direction));
 
             if (a >= 0.0 && a <= 1.0) {
-                Eigen::Vector3d v0 = v.row(f(face, edge));
-                Eigen::Vector3d v1 = v.row(f(face, (edge + 1) % 3));
+                const Eigen::Vector3f v0 = v.row(f(face, edge));
+                const Eigen::Vector3f v1 = v.row(f(face, (edge + 1) % 3));
 
-                Eigen::Vector3d isocline_vertex = (1.0 - a) * v0 + a * v1;
-                Eigen::Vector3d isocline_normal = (1.0 - a) * n0 + a * n1;
+                const Eigen::Vector3f isocline_vertex = (1.0f - a) * v0 + a * v1;
+                const Eigen::Vector3f isocline_normal = (1.0f - a) * n0 + a * n1;
 
                 // Min isocline curve passes through edge
                 if (isocline_index == 0) {
                     e0.push_back(isocline_vertex);
                     en0.push_back(isocline_normal);
-                } else {
+                } else if (isocline_index == 1) {
                     e1.push_back(isocline_vertex);
                     en1.push_back(isocline_normal);
                 }
@@ -67,14 +67,14 @@ void gather_edges(
 }
 
 void compute_isocline(
-        Eigen::MatrixXd& e0,
-        Eigen::MatrixXd& e1,
-        Eigen::MatrixXd& en0,
-        Eigen::MatrixXd& en1,
-        const Eigen::Vector3d& min_isocline_direction,
-        const Eigen::MatrixXd& v,
+        Eigen::MatrixXf& e0,
+        Eigen::MatrixXf& e1,
+        Eigen::MatrixXf& en0,
+        Eigen::MatrixXf& en1,
+        const Eigen::Vector3f& min_isocline_direction,
+        const Eigen::MatrixXf& v,
         const Eigen::MatrixXi& f,
-        const Eigen::MatrixXd& n) {
+        const Eigen::MatrixXf& n) {
 
     const auto processor_count = std::thread::hardware_concurrency();
 
@@ -82,10 +82,10 @@ void compute_isocline(
     std::cout << "Processor count: " << processor_count << std::endl;
 #endif
 
-    std::vector<std::vector<Eigen::Vector3d>> thread_e0(processor_count);
-    std::vector<std::vector<Eigen::Vector3d>> thread_e1(processor_count);
-    std::vector<std::vector<Eigen::Vector3d>> thread_en0(processor_count);
-    std::vector<std::vector<Eigen::Vector3d>> thread_en1(processor_count);
+    std::vector<std::vector<Eigen::Vector3f>> thread_e0(processor_count);
+    std::vector<std::vector<Eigen::Vector3f>> thread_e1(processor_count);
+    std::vector<std::vector<Eigen::Vector3f>> thread_en0(processor_count);
+    std::vector<std::vector<Eigen::Vector3f>> thread_en1(processor_count);
 
     size_t num_faces_per_thread = f.rows() / processor_count;
 
@@ -134,9 +134,9 @@ void compute_isocline(
     }
 }
 
-double isocline_length(
-        Eigen::MatrixXd& e0,
-        Eigen::MatrixXd& e1) {
+float isocline_length(
+        Eigen::MatrixXf& e0,
+        Eigen::MatrixXf& e1) {
 
     assert(e0.rows() == e1.rows());
 

@@ -8,11 +8,11 @@
 #include "solver.h"
 
 int main(int argc, char** argv) {
-    double min_temperature = 0.0001;
-    double alpha = 0.9;
+    float min_temperature = 0.0001f;
+    float alpha = 0.9f;
     uint32_t max_iterations = 100;
     uint32_t max_inner_iterations = 100;
-    double neighbor_stddev = 0.1;
+    float neighbor_stddev = 0.1f;
     bool verbose = false;
 
     if (argc != 2) {
@@ -26,7 +26,7 @@ int main(int argc, char** argv) {
         std::cout << "The Minimum Isocline Curve Solver" << std::endl;
     }
 
-    Eigen::MatrixXd v;
+    Eigen::MatrixXf v;
     Eigen::MatrixXi f;
 
     igl::readPLY(argv[1], v, f);
@@ -40,7 +40,7 @@ int main(int argc, char** argv) {
         std::cout << "Faces: " << f.rows() << std::endl;
     }
 
-    Eigen::MatrixXd n;
+    Eigen::MatrixXf n;
 
     igl::per_vertex_normals(v, f, n);
 
@@ -52,8 +52,8 @@ int main(int argc, char** argv) {
 
     assert(v.rows() == n.rows());   
 
-    Eigen::Vector3d min_isocline_direction;
-    double min_isocline_length = std::numeric_limits<double>::infinity();
+    Eigen::Vector3f min_isocline_direction;
+    float min_isocline_length = std::numeric_limits<float>::infinity();
 
     miso::solve_min_isocline(
             min_isocline_direction,

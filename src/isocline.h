@@ -5,17 +5,17 @@
 namespace miso {
 
 void compute_isocline(
-        Eigen::MatrixXd& e0,
-        Eigen::MatrixXd& e1,
-        Eigen::MatrixXd& en0,
-        Eigen::MatrixXd& en1,
-        const Eigen::Vector3d& min_isocline_direction,
-        const Eigen::MatrixXd& v,
+        Eigen::MatrixXf& e0,
+        Eigen::MatrixXf& e1,
+        Eigen::MatrixXf& en0,
+        Eigen::MatrixXf& en1,
+        const Eigen::Vector3f& min_isocline_direction,
+        const Eigen::MatrixXf& v,
         const Eigen::MatrixXi& f,
-        const Eigen::MatrixXd& n);
+        const Eigen::MatrixXf& n);
 
-double isocline_length(
-        Eigen::MatrixXd& e0,
-        Eigen::MatrixXd& e1);
+float isocline_length(
+        Eigen::MatrixXf& e0,
+        Eigen::MatrixXf& e1);
 
 }
