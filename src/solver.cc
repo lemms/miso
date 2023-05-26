@@ -50,6 +50,21 @@ void neighbor_spherical_coords(
 
     neighbor_theta = std::max(0.0f, std::min(2.0f * static_cast<float>(M_PI), theta + normal_dis(gen)));
     neighbor_phi = std::max(0.0f, std::min(static_cast<float>(M_PI), phi + normal_dis(gen)));
+
+    // Wrap neighbor coordinates
+    while (neighbor_theta < 0.0f) {
+        neighbor_theta += 2.0f * static_cast<float>(M_PI);
+    }
+    while (neighbor_theta > 2.0f * static_cast<float>(M_PI)) {
+        neighbor_theta -= 2.0f * static_cast<float>(M_PI);
+    }
+
+    while (neighbor_phi < 0.0f) {
+        neighbor_phi += static_cast<float>(M_PI);
+    }
+    while (neighbor_phi > static_cast<float>(M_PI)) {
+        neighbor_phi -= static_cast<float>(M_PI);
+    }
 }
 
 void solve_min_isocline(
