@@ -41,7 +41,7 @@ void random_spherical_coords(
         float& phi) {
 
     theta = 2.0f * static_cast<float>(M_PI) * dis(gen);
-    phi = static_cast<float>(M_PI) * dis(gen);
+    phi = acos(1.0f - 2.0f * dis(gen));
 }
 
 void neighbor_spherical_coords(
